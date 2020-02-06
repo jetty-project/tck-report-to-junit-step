@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class TckReportToJunitStepExecution extends StepExecution
 {
@@ -37,7 +38,7 @@ public class TckReportToJunitStepExecution extends StepExecution
 
         FilePath tctReport = filePath.child( tckReportTxtPath );
         List<String> lines = IOUtils.readLines( tctReport.read(), Charset.defaultCharset());
-        final Map<String, List<TestResult>> resultPerClass = new HashMap<>( );
+        final Map<String, List<TestResult>> resultPerClass = new TreeMap<>( );
 
 //        com/sun/ts/tests/servlet/api/javax_servlet/asynccontext/URLClient.java#asyncListenerTest1                                                                          Passed.
 //        com/sun/ts/tests/servlet/api/javax_servlet/asynccontext/URLClient.java#asyncListenerTest6                                                                          Passed.
