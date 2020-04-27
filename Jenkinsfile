@@ -8,23 +8,19 @@ pipeline {
     timeout(time: 60, unit: 'MINUTES')
   }
   stages {
-    stage( "Parallel Stage" ) {
-      parallel {
-        stage( "Build / Test - JDK11" ) {
-          agent { node { label 'linux' } }
-          options { timeout( time: 120, unit: 'MINUTES' ) }
-          steps {
-            container('jetty-build') {
-              mavenBuild( "jdk11", "clean install javadoc:javadoc" )
-              // Collect up the jacoco execution results
-              jacoco inclusionPattern: '**/org/eclipse/jetty/**/*.class',
-                     exclusionPattern: '',
-                     execPattern: '**/target/jacoco.exec',
-                     classPattern: '**/target/classes',
-                     sourcePattern: '**/src/main/java'
-              warnings consoleParsers: [[parserName: 'Maven'], [parserName: 'Java']]
-            }
-          }
+    stage( "Build / Test - JDK11" ) {
+      agent { node { label 'linux' } }
+      options { timeout( time: 120, unit: 'MINUTES' ) }
+      steps {
+        container('jetty-build') {
+          mavenBuild( "jdk11", "clean install javadoc:javadoc" )
+          // Collect up the jacoco execution results
+          jacoco inclusionPattern: '**/org/eclipse/jetty/**/*.class',
+                 exclusionPattern: '',
+                 execPattern: '**/target/jacoco.exec',
+                 classPattern: '**/target/classes',
+                 sourcePattern: '**/src/main/java'
+          warnings consoleParsers: [[parserName: 'Maven'], [parserName: 'Java']]
         }
       }
     }
