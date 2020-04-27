@@ -23,9 +23,9 @@ public class TckReportToJunitStepExecution extends StepExecution
 {
     private String tckReportTxtPath;
     private String junitFolderPath;
-    public TckReportToJunitStepExecution( @Nonnull StepContext context, String tckReportTxtPath, String junitFolderPath )
+    public TckReportToJunitStepExecution(@Nonnull StepContext context, String tckReportTxtPath, String junitFolderPath)
     {
-        super( context );
+        super(context);
         this.tckReportTxtPath = tckReportTxtPath;
         this.junitFolderPath = junitFolderPath;
     }
@@ -34,11 +34,11 @@ public class TckReportToJunitStepExecution extends StepExecution
     public boolean start()
         throws Exception
     {
-        FilePath filePath = getContext().get( FilePath.class );
+        FilePath filePath = getContext().get(FilePath.class);
 
-        FilePath tctReport = filePath.child( tckReportTxtPath );
+        FilePath tctReport = filePath.child(tckReportTxtPath);
         List<String> lines = IOUtils.readLines( tctReport.read(), Charset.defaultCharset());
-        final Map<String, List<TestResult>> resultPerClass = new TreeMap<>( );
+        final Map<String, List<TestResult>> resultPerClass = new TreeMap<>();
 
 //        com/sun/ts/tests/servlet/api/javax_servlet/asynccontext/URLClient.java#asyncListenerTest1                                                                          Passed.
 //        com/sun/ts/tests/servlet/api/javax_servlet/asynccontext/URLClient.java#asyncListenerTest6                                                                          Passed.
@@ -51,31 +51,31 @@ public class TckReportToJunitStepExecution extends StepExecution
 //        com/sun/ts/tests/servlet/api/javax_servlet/asynccontext/URLClient.java#forwardTest1                                                                                Failed. Test case throws exception: [BaseUrlClient] forwardTest1 failed! Check output for cause of failure.
 //        com/sun/ts/tests/servlet/api/javax_servlet/asynccontext/URLClient.java#getRequestTest                                                                              Passed.
 
-        lines.stream().forEach( line -> {
-            String[] values = StringUtils.split( line );
-            String className = StringUtils.substringBefore( values[0], "#" );
-            List<TestResult> results = resultPerClass.get( className );
-            if(results==null){
-                results = new ArrayList<>( );
-                resultPerClass.put( className, results );
+        lines.forEach(line ->
+        {
+            String[] values = StringUtils.split(line);
+            String className = StringUtils.substringBefore(values[0], "#");
+            List<TestResult> results = resultPerClass.computeIfAbsent(className, k -> new ArrayList<>());
+            String testName = StringUtils.substringAfter(values[0], "#");
+            if (!StringUtils.startsWith(values[1], "Passed."))
+            {
+                results.add(new TestResult(testName, StringUtils.substringAfter(line, "Failed.")));
             }
-            String testName = StringUtils.substringAfter( values[0], "#" );
-            if(!StringUtils.startsWith( values[1], "Passed.")){
-                results.add( new TestResult( testName, StringUtils.substringAfter( line, "Failed." ) ) );
-            } else {
-                results.add( new TestResult( testName, null ) );
+            else
+            {
+                results.add(new TestResult(testName, null));
             }
-        } );
+        });
 
 
-        FilePath reportsDirectory = filePath.child( junitFolderPath );
-        if(!reportsDirectory.exists())
+        FilePath reportsDirectory = filePath.child(junitFolderPath);
+        if (!reportsDirectory.exists())
         {
             reportsDirectory.mkdirs();
         }
-        for( Map.Entry<String, List<TestResult>> entry : resultPerClass.entrySet() )
+        for (Map.Entry<String, List<TestResult>> entry : resultPerClass.entrySet())
         {
-            Xpp3Dom testsuite = new Xpp3Dom( "testsuite" );
+            Xpp3Dom testsuite = new Xpp3Dom("testsuite");
             testsuite.setAttribute( "name", entry.getKey() );
             testsuite.setAttribute( "tests", Integer.toString( entry.getValue().size() ) );
             testsuite.setAttribute( "failures",
@@ -84,7 +84,7 @@ public class TckReportToJunitStepExecution extends StepExecution
             for(TestResult testResult : entry.getValue())
             {
                 Xpp3Dom testcase = new Xpp3Dom("testcase");
-                testsuite.addChild( testcase );
+                testsuite.addChild(testcase);
                 testcase.setAttribute( "name", testResult.testName );
                 testcase.setAttribute( "classname", entry.getKey() );
                 if(testResult.failureMessage!=null)
@@ -101,16 +101,17 @@ public class TckReportToJunitStepExecution extends StepExecution
                 Xpp3DomWriter.write( outputStreamWriter, testsuite );
             }
         }
-        getContext().setResult( Result.SUCCESS );
-        getContext().onSuccess( Result.SUCCESS );
+        getContext().setResult(Result.SUCCESS);
+        getContext().onSuccess(Result.SUCCESS);
         return true;
     }
 
-    private static class TestResult {
-        private String testName;
-        private String failureMessage;
+    private static class TestResult
+    {
+        private final String testName;
+        private final String failureMessage;
 
-        public TestResult( String testName, String failureMessage )
+        public TestResult(String testName, String failureMessage)
         {
             this.testName = testName;
             this.failureMessage = failureMessage;
