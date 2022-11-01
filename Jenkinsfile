@@ -12,7 +12,6 @@ pipeline {
       agent { node { label 'linux' } }
       options { timeout( time: 120, unit: 'MINUTES' ) }
       steps {
-        container('jetty-build') {
           mavenBuild( "jdk11", "clean install javadoc:javadoc" )
           // Collect up the jacoco execution results
           jacoco inclusionPattern: '**/org/eclipse/jetty/**/*.class',
@@ -21,7 +20,6 @@ pipeline {
                  classPattern: '**/target/classes',
                  sourcePattern: '**/src/main/java'
           warnings consoleParsers: [[parserName: 'Maven'], [parserName: 'Java']]
-        }
       }
     }
   }
